@@ -9,14 +9,14 @@ const HomePage = () => {
   useEffect(() => {
   const fetchCourses = async () => {
     try {
-      const res = await fetch("https://mocki.io/v1/a1a06a15-af32-4ed8-ac4a-da66ff69a343");
+      const res = await fetch("http://localhost:3000/api/v1/courses");
 
       if (!res.ok) {
         throw new Error("Failed to fetch courses");
       }
 
       const data = await res.json();
-      setCourses(data);
+      setCourses(Array.isArray(data) ? data : data.courses || data.data || []);
     } catch (error) {
       console.error(error);
     }
