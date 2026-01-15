@@ -1,5 +1,9 @@
 # Udemy Clone - MERN Course Platform
 
+•	modern design with focus on display courses, each course can have multiple videos. Course includes videos, homework, other files – use React for frontend
+•	a simple backend can create course (CMS) – use Node.js for backend
+•	application needs to be scalable – we might need to add AI agent in the future by other teams
+
 **PilotGroup5** - Full Stack Course Management System
 
 ---
