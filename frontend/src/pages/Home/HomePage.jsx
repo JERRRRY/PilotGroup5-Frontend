@@ -1,6 +1,7 @@
 import React from "react";
 import CourseCard from "../../components/home/CourseCard";
 import { useState, useEffect } from "react";
+import Header from "../../components/common/Header";
 
 const HomePage = () => {
   const [courses, setCourses] = useState([]);
@@ -26,15 +27,9 @@ const HomePage = () => {
   return (
     <div className="min-h-screen">
       <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] bg-size-[16px_16px] opacity-30 pointer-events-none" />
-      <div className="relative max-w-7xl mx-auto">
-        <div className="mb-2 mt-2">
-          <h1 className="text-2xl font-medium tracking-tight">
-            <span className="text-violet-600 font-semibold">Pi</span>
-            <span className="text-slate-900">Tube</span>
-          </h1>
-          <p className="text-slate-500 text-sm">Learn your course online</p>
-        </div>
-      </div>
+
+      <Header />
+      
       <section className="relative max-w-7xl mx-auto px-4 bg-[#fbf8f1] mt-20 pt-4 ">
         <div className="mb-8 mt-8">
           <h2 className="text-4xl tracking-tight font-semibold text-slate-900">
