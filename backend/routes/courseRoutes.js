@@ -1,7 +1,7 @@
 import express from 'express';
 import {
   getAllCourses,
-  // getCourseById,
+  getCourseById,
   // createCourse,
   // updateCourse,
   // deleteCourse,
@@ -13,7 +13,7 @@ const router = express.Router();
 router.get('/', getAllCourses);
 
 // // Route to get a specific course by ID
-// router.get('/:id', getCourseById);
+router.get('/:id', getCourseById);
 
 // // Route to create a new course
 // router.post('/', createCourse);
