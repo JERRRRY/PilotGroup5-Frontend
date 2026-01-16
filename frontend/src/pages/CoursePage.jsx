@@ -11,7 +11,7 @@ const CoursePage = () => {
     const contentRef = useRef(null);
 
     // Mock data toggle
-    const USE_MOCK_DATA = true;
+    const USE_MOCK_DATA = false;
 
     useEffect(() => {
         const fetchCourse = async () => {

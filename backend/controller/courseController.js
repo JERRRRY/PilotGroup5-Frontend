@@ -51,29 +51,26 @@ export const getCourseById = async (req, res) => {
         order: page.order,
         type: page.type,
         title: page.title,
+        textContent: page.textContent,
+        videoUrls: page.videoUrls,
+        images: page.images,
+        quizData: page.quizData
       };
-
-      // Add type-specific fields
-      if (page.type === "video") {
-        formattedPage.videoUrl = page.videoUrls?.[0] || null;
-      } else if (page.type === "text") {
-        formattedPage.textContent = page.textContent;
-      } else if (page.type === "quiz") {
-        formattedPage.quizData = page.quizData;
-      } else if (page.type === "image") {
-        formattedPage.images = page.images;
-      }
-
       return formattedPage;
     });
 
     const courseDetail = {
       _id: course._id,
       title: course.title,
+      description: course.description,
+      thumbnail: course.thumbnail, 
+      category: course.category || course.Category,
+      keywords: course.keywords || course.Keywords,
       pages: formattedPages,
     };
 
-    return res.status(200).json(courseDetail);
+    return res.status(200).json({ success: true, data: courseDetail });
+
   } catch (error) {
     console.error('Error in getCourseById:', error);
     return res.status(500).json({
