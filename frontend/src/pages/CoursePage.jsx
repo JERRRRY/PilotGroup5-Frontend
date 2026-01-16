@@ -7,23 +7,27 @@ const CoursePage = () => {
     const [course, setCourse] = useState(null);
     const [loading, setLoading] = useState(true);
 
+
     useEffect(() => {
         const fetchCourse = async () => {
             try {
-                const res = await fetch("https://mocki.io/v1/a1a06a15-af32-4ed8-ac4a-da66ff69a343");
+                const res = await fetch(`http://localhost:3000/api/v1/courses/${id}`);
 
                 if (!res.ok) {
-                    throw new Error("Failed to fetch courses");
+                    throw new Error("Failed to fetch course");
                 }
 
-                const data = await res.json();
+                const json = await res.json();
 
-                const foundCourse = data.find((c) => c._id === id);
+                if (json.success) {
+                    setCourse(json.data);
+                } else {
+                    setCourse(null);
+                }
 
-                setCourse(foundCourse);
                 setLoading(false);
             } catch (error) {
-                console.error(error);
+                console.error("Error fetching course:", error);
                 setLoading(false);
             }
         };
@@ -91,7 +95,7 @@ const CoursePage = () => {
                                 <div className="flex items-center">
                                     {course.videoCount} Videos
                                 </div>
-                                
+
                             </div>
 
                             <div className="mt-8">
