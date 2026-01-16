@@ -2,6 +2,7 @@ import React from "react";
 import CourseCard from "../../components/home/CourseCard";
 import { useState, useEffect } from "react";
 import Header from "../../components/common/Header";
+import CourseSection from "../../components/home/CourseSection";
 
 const HomePage = () => {
   const [courses, setCourses] = useState([]);
@@ -24,29 +25,16 @@ const HomePage = () => {
   fetchCourses();
 }, []);
 
+  const categories = [...new Set(courses.flatMap((course) => course.category))];
+  console.log("Categories:", categories);
+
   return (
     <div className="min-h-screen">
       <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] bg-size-[16px_16px] opacity-30 pointer-events-none" />
-
       <Header />
-      
-      <section className="relative max-w-7xl mx-auto px-4 bg-[#fbf8f1] mt-20 pt-4 ">
-        <div className="mb-8 mt-8">
-          <h2 className="text-4xl tracking-tight font-semibold text-slate-900">
-            Featured Courses
-          </h2>
-          <p className="text-sm text-slate-500">
-            Handpicked courses from top instructors
-          </p>
-        </div>
-
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {courses.map((course) => (
-            <CourseCard key={course._id} course={course} />
-          ))}
-        </div>
-      </section>
-
+      {categories.map((category) => (
+        <CourseSection key={category} category={category} courses={courses} />
+      ))}
     </div>
   );
 };
