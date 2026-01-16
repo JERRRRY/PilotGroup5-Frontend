@@ -14,9 +14,6 @@ const CourseContentList = ({ pages }) => {
   return (
     <div className="space-y-12">
       {pages.map((page, index) => {
-        // no quiz for now
-        if (page.type === 'quiz') return null;
-
         return (
           <div key={index} className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
             {/* title&type*/}
@@ -73,6 +70,30 @@ const CourseContentList = ({ pages }) => {
                       </figcaption>
                     )}
                   </figure>
+                ))}
+              </div>
+            )}
+
+            {/* quiz */}
+            {page.type === 'quiz' && page.quizData && page.quizData.length > 0 && (
+              <div className="space-y-6 mt-6">
+                {page.quizData.map((quiz, i) => (
+                  <div key={i} className="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                    <p className="font-semibold text-slate-900 mb-4">{i + 1}. {quiz.question}</p>
+                    <div className="space-y-2">
+                      {quiz.options && quiz.options.map((option, optIdx) => (
+                        <label key={optIdx} className="flex items-center p-3 border border-slate-200 rounded-lg hover:bg-slate-100 cursor-pointer">
+                          <input 
+                            type="radio" 
+                            name={`quiz-${index}-${i}`}
+                            value={optIdx}
+                            className="w-4 h-4 text-violet-600"
+                          />
+                          <span className="ml-3 text-slate-700">{option}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
                 ))}
               </div>
             )}
