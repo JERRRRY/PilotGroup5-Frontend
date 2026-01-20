@@ -67,7 +67,7 @@ const CoursePage = () => {
         </div>
     );
 
-    // ✅ 动态计算视频数量 (过滤掉非视频页面)
+    // 动态计算视频数量 (过滤掉非视频页面)
     const videoCount = course.pages ? course.pages.filter(p => p.type === 'video').length : 0;
 
     return (

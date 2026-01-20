@@ -1,4 +1,5 @@
 import React from 'react';
+import QuizSection from './QuizSection';
 
 const CourseContentList = ({ pages }) => {
 
@@ -75,7 +76,7 @@ const CourseContentList = ({ pages }) => {
             )}
 
             {/* quiz */}
-            {page.type === 'quiz' && page.quizData && page.quizData.length > 0 && (
+            {/* {page.type === 'quiz' && page.quizData && page.quizData.length > 0 && (
               <div className="space-y-6 mt-6">
                 {page.quizData.map((quiz, i) => (
                   <div key={i} className="bg-slate-50 p-4 rounded-lg border border-slate-200">
@@ -96,6 +97,9 @@ const CourseContentList = ({ pages }) => {
                   </div>
                 ))}
               </div>
+            )} */}
+            {page.type === 'quiz' && page.quizData && page.quizData.length > 0 && (
+              <QuizSection quizData={page.quizData} />
             )}
           </div>
         );
