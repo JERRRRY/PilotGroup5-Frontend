@@ -2,8 +2,8 @@ import express, { Express } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
-import courseRoutes from './routes/courseRoutes.js';
-import { errorHandler, notFoundHandler } from './middleware/errorMiddleware.js';
+import courseRoutes from './routes/courseRoutes';
+import { errorHandler, notFoundHandler } from './middleware/errorMiddleware';
 
 dotenv.config();
 

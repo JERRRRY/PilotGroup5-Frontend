@@ -12,15 +12,15 @@ import {
   deleteCoursePage,
   uploadResource,
   deleteResource,
-} from '../controller/courseController.js';
+} from '../controller/courseController';
 import {
   validateCreateCourse,
   validateUpdateCourse,
   validateAddPage,
   validateUploadResource,
   validatePublishCourse,
-} from '../middleware/validation.js';
-import { asyncHandler } from '../middleware/errorMiddleware.js';
+} from '../middleware/validation';
+import { asyncHandler } from '../middleware/errorMiddleware';
 
 const router: Router = express.Router();
 

@@ -1,13 +1,13 @@
 import { Request, Response } from 'express';
-import Course from '../models/Course.js';
+import Course from '../models/Course';
 import mongoose from 'mongoose';
-import { ICourseCard, ICourseDetail } from '../types/course.js';
+import { ICourseCard, ICourseDetail } from '../types/course';
 import {
   AppError,
   ValidationError,
   NotFoundError,
   DatabaseError,
-} from '../utils/errors.js';
+} from '../utils/errors';
 
 export const getAllCourses = async (req: Request, res: Response): Promise<void> => {
   try {

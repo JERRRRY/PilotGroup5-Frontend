@@ -1,5 +1,5 @@
 import mongoose, { Schema, Document } from 'mongoose';
-import { ICourse } from '../types/course.js';
+import { ICourse } from '../types/course';
 
 interface ICourseDocument extends Omit<ICourse, '_id'>, Document {}
 

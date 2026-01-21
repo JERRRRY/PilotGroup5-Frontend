@@ -10,7 +10,7 @@ const HomePage = () => {
   useEffect(() => {
   const fetchCourses = async () => {
     try {
-      const res = await fetch("http://localhost:3000/api/v1/courses");
+      const res = await fetch("/api/v1/courses");
 
       if (!res.ok) {
         throw new Error("Failed to fetch courses");

@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { ValidationError } from '../utils/errors.js';
+import { ValidationError } from '../utils/errors';
 
 export const validateCreateCourse = (
   req: Request,
