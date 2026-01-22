@@ -7,6 +7,7 @@ import HomePage from "./pages/Home/HomePage";
 import CoursePage from "./pages/CoursePage";
 import CourseEditSearchPage from "./pages/CourseEditSearchPage";
 import CourseEditPage from "./pages/CourseEditPage";
+import CourseDetailEditPage from "./pages/CourseDetailEditPage";
 
 const router = createBrowserRouter([
   {
@@ -22,6 +23,16 @@ const router = createBrowserRouter([
   {
     path: "/course/edit/:id",
     element: <CourseEditPage />,
+    errorElement: <NotFoundPage />,
+  },
+  {
+    path: "/course/edit/:id/pages/new",
+    element: <CourseDetailEditPage />,
+    errorElement: <NotFoundPage />,
+  },
+  {
+    path: "/course/edit/:id/pages/:pageIndex",
+    element: <CourseDetailEditPage />,
     errorElement: <NotFoundPage />,
   },
     {

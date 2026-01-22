@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import Header from "../components/common/Header";
 import CourseForm from "../components/course/CourseForm";
 import {
@@ -13,6 +13,7 @@ const emptyCourse = {
   title: "",
   description: "",
   thumbnail: "",
+  pages: [], // ✅ important
 };
 
 const CourseEditPage = () => {
@@ -23,6 +24,7 @@ const CourseEditPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // Load course (edit mode)
   useEffect(() => {
     if (!id) {
       setCourse(emptyCourse);
@@ -45,12 +47,13 @@ const CourseEditPage = () => {
     loadCourse();
   }, [id]);
 
-  //handle user input change
+  // Handle course field changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setCourse((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Save (create or update)
   const handleSave = async () => {
     try {
       setLoading(true);
@@ -71,12 +74,13 @@ const CourseEditPage = () => {
     }
   };
 
+  // Delete course
   const handleDelete = async () => {
-    if (!window.confirm("Are you sure you want to delete this course?")) return;
+    if (!window.confirm(`Delete "${course.title}"?`)) return;
 
     try {
       setLoading(true);
-      await deleteCourse(id);
+      await deleteCourse(course._id);
       navigate("/course/edit-search");
     } catch (err) {
       console.error(err);
@@ -91,12 +95,10 @@ const CourseEditPage = () => {
       <Header />
 
       <div className="max-w-3xl mx-auto p-6">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-xl font-semibold">
-            {id ? "Edit Course" : "Add New Course"}
-          </h1>
-        </div>
+        {/* Page Title */}
+        <h1 className="text-xl font-semibold mb-6">
+          {id ? "Edit Course" : "Add New Course"}
+        </h1>
 
         {/* Error */}
         {error && (
@@ -105,25 +107,76 @@ const CourseEditPage = () => {
           </div>
         )}
 
-        {/* Form */}
+        {/* ================= Course Info Form ================= */}
         <CourseForm course={course} onChange={handleChange} />
 
-        {/* Actions */}
-        <div className="flex gap-4 mt-6">
+        {/* ================= Pages Section ================= */}
+        {id && (
+          <div className="mt-10">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold">Pages</h2>
+
+              <Link
+                to={`/course/edit/${id}/pages/new`}
+                className="rounded bg-violet-600 px-3 py-1 text-white text-sm"
+              >
+                + Add Page
+              </Link>
+            </div>
+
+            {course.pages.length === 0 && (
+              <p className="text-slate-500 text-sm">
+                No pages added yet.
+              </p>
+            )}
+
+            <div className="space-y-2">
+              {course.pages
+                .sort((a, b) => a.order - b.order)
+                .map((page, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between border rounded px-3 py-2"
+                  >
+                    <div>
+                      <span className="mr-2 text-sm text-slate-500">
+                        {page.order}.
+                      </span>
+                      <span className="font-medium">{page.title}</span>
+                      <span className="ml-2 text-xs text-slate-400 uppercase">
+                        {page.type}
+                      </span>
+                    </div>
+
+                    <Link
+                      to={`/course/edit/${id}/pages/${index}`}
+                      className="text-sm text-violet-600 hover:underline"
+                    >
+                      Edit
+                    </Link>
+                  </div>
+                ))}
+            </div>
+          </div>
+        )}
+
+        {/* ================= Actions ================= */}
+        <div className="flex gap-4 mt-10">
           <button
             onClick={handleSave}
             disabled={loading}
             className="bg-violet-600 text-white px-4 py-2 rounded disabled:opacity-50"
           >
-            {loading ? "Saving..." : id ? "Save Changes" : "Create Course"}
+            {loading ? "Saving..." : id ? "Save Course" : "Create Course"}
           </button>
+
           {id && (
             <button
               onClick={handleDelete}
               disabled={loading}
               className="border border-red-500 text-red-600 px-4 py-2 rounded hover:bg-red-50 disabled:opacity-50"
             >
-              Delete
+              Delete Course
             </button>
           )}
 
