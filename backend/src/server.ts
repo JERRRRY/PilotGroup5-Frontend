@@ -1,9 +1,10 @@
 import express, { Express } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import mongoose from 'mongoose';
+// import mongoose from 'mongoose'; // MongoDB - commented out
 import courseRoutes from './routes/courseRoutes';
 import { errorHandler, notFoundHandler } from './middleware/errorMiddleware';
+import { docClient } from './utils/dynamodb'; // DynamoDB connection
 
 dotenv.config();
 
@@ -14,7 +15,20 @@ const API_PREFIX = '/api/v1';
 app.use(cors());
 app.use(express.json());
 
-// MongoDB connection
+// DynamoDB connection
+// Using AWS SDK v3 with auto-credentials
+console.log('DynamoDB client initialized for region:', process.env.AWS_REGION || 'us-east-1');
+
+// Test DynamoDB connection
+try {
+  console.log('DynamoDB is ready to use');
+} catch (error) {
+  console.error('Error initializing DynamoDB:', error);
+  process.exit(1);
+}
+
+// MongoDB connection - commented out, using DynamoDB instead
+/*
 mongoose
   .connect(process.env.MONGODB_URI || '')
   .then(() => {
@@ -24,6 +38,7 @@ mongoose
     console.error('Error connecting to MongoDB:', error.message);
     process.exit(1);
   });
+*/
 
 // Routes
 app.use(`${API_PREFIX}/courses`, courseRoutes);

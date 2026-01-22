@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
-import Course from '../models/Course';
-import mongoose from 'mongoose';
+// import Course from '../models/Course'; // MongoDB - commented out
+// import mongoose from 'mongoose'; // MongoDB - commented out
+import { CourseService } from '../services/courseService'; // DynamoDB service
 import { ICourseCard, ICourseDetail } from '../types/course';
 import {
   AppError,
@@ -9,16 +10,22 @@ import {
   DatabaseError,
 } from '../utils/errors';
 
+// Validate UUID format
+const isValidUUID = (uuid: string): boolean => {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(uuid);
+};
+
 export const getAllCourses = async (req: Request, res: Response): Promise<void> => {
   try {
-    const courses = await Course.find();
+    const courses = await CourseService.getAllCourses();
 
-    const courseCards: ICourseCard[] = courses.map((course) => {
+    const courseCards: ICourseCard[] = courses.map((course: any) => {
       const videoCount = (course.pages || []).filter(
-        (page) => page.type === 'video'
+        (page: any) => page.type === 'video'
       ).length;
       return {
-        _id: course._id?.toString() || '',
+        _id: course.courseId,
         title: course.title,
         description: course.description,
         thumbnail: course.thumbnail,
@@ -36,18 +43,18 @@ export const getAllCourses = async (req: Request, res: Response): Promise<void> 
 export const getCourseById = async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
 
-  if (!mongoose.Types.ObjectId.isValid(id)) {
+  if (!isValidUUID(id)) {
     throw new ValidationError('Invalid course ID format');
   }
 
   try {
-    const course = await Course.findById(id);
+    const course = await CourseService.getCourseById(id);
     if (!course) {
       throw new NotFoundError('Course not found');
     }
 
     // Format pages according to mock data structure
-    const formattedPages = (course.pages || []).map((page) => {
+    const formattedPages = (course.pages || []).map((page: any) => {
       return {
         order: page.order,
         type: page.type,
@@ -60,7 +67,7 @@ export const getCourseById = async (req: Request, res: Response): Promise<void> 
     });
 
     const courseDetail: ICourseDetail = {
-      _id: course._id?.toString(),
+      _id: course.courseId,
       title: course.title,
       description: course.description,
       thumbnail: course.thumbnail,
@@ -85,7 +92,12 @@ export const createCourse = async (req: Request, res: Response): Promise<void> =
   try {
     const { title, description, thumbnail, category, keywords, published } = req.body;
 
-    const newCourse = new Course({
+    // Validation
+    if (!title || !description || !thumbnail) {
+      throw new ValidationError('Missing required fields: title, description, thumbnail');
+    }
+
+    const newCourse = await CourseService.createCourse({
       title,
       description,
       thumbnail,
@@ -96,13 +108,11 @@ export const createCourse = async (req: Request, res: Response): Promise<void> =
       resources: [],
     });
 
-    await newCourse.save();
-
     res.status(201).json({
       success: true,
       message: 'Course created successfully',
       data: {
-        _id: newCourse._id,
+        _id: newCourse.courseId,
         title: newCourse.title,
         description: newCourse.description,
         createdAt: newCourse.createdAt,
@@ -112,10 +122,6 @@ export const createCourse = async (req: Request, res: Response): Promise<void> =
     if (error instanceof AppError) {
       throw error;
     }
-    if (error instanceof mongoose.Error.ValidationError) {
-      const messages = Object.values(error.errors).map((err) => err.message);
-      throw new ValidationError(`Validation error: ${messages.join(', ')}`);
-    }
     throw new DatabaseError('Failed to create course');
   }
 };
@@ -123,15 +129,12 @@ export const createCourse = async (req: Request, res: Response): Promise<void> =
 export const updateCourse = async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
 
-  if (!mongoose.Types.ObjectId.isValid(id)) {
+  if (!isValidUUID(id)) {
     throw new ValidationError('Invalid course ID format');
   }
 
   try {
-    const updatedCourse = await Course.findByIdAndUpdate(id, req.body, {
-      new: true,
-      runValidators: true,
-    });
+    const updatedCourse = await CourseService.updateCourse(id, req.body);
 
     if (!updatedCourse) {
       throw new NotFoundError('Course not found');
@@ -141,7 +144,7 @@ export const updateCourse = async (req: Request, res: Response): Promise<void> =
       success: true,
       message: 'Course updated successfully',
       data: {
-        _id: updatedCourse._id,
+        _id: updatedCourse.courseId,
         title: updatedCourse.title,
         updatedAt: updatedCourse.updatedAt,
       },
@@ -150,10 +153,6 @@ export const updateCourse = async (req: Request, res: Response): Promise<void> =
     if (error instanceof AppError) {
       throw error;
     }
-    if (error instanceof mongoose.Error.ValidationError) {
-      const messages = Object.values(error.errors).map((err) => err.message);
-      throw new ValidationError(`Validation error: ${messages.join(', ')}`);
-    }
     throw new DatabaseError('Failed to update course');
   }
 };
@@ -161,22 +160,23 @@ export const updateCourse = async (req: Request, res: Response): Promise<void> =
 export const deleteCourse = async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
 
-  if (!mongoose.Types.ObjectId.isValid(id)) {
+  if (!isValidUUID(id)) {
     throw new ValidationError('Invalid course ID format');
   }
 
   try {
-    const deletedCourse = await Course.findByIdAndDelete(id);
-
-    if (!deletedCourse) {
+    const course = await CourseService.getCourseById(id);
+    if (!course) {
       throw new NotFoundError('Course not found');
     }
+
+    await CourseService.deleteCourse(id);
 
     res.status(200).json({
       success: true,
       message: 'Course deleted successfully',
       data: {
-        _id: deletedCourse._id,
+        _id: id,
       },
     });
   } catch (error) {
@@ -197,24 +197,26 @@ export const getAllCoursesForCMS = async (req: Request, res: Response): Promise<
       throw new ValidationError('Page and limit must be positive numbers');
     }
 
-    const skip = (page - 1) * limit;
-
-    const filter: Record<string, any> = {};
+    // Get courses by status
+    let courses: any[] = [];
     if (status === 'published') {
-      filter.published = true;
+      courses = await CourseService.getCoursesByStatus(true);
     } else if (status === 'draft') {
-      filter.published = false;
+      courses = await CourseService.getCoursesByStatus(false);
+    } else {
+      courses = await CourseService.getAllCourses();
     }
 
-    const courses = await Course.find(filter)
-      .skip(skip)
-      .limit(limit)
-      .sort({ createdAt: -1 });
+    // Sort by createdAt descending
+    courses.sort((a: any, b: any) => b.createdAt - a.createdAt);
 
-    const total = await Course.countDocuments(filter);
+    // Pagination
+    const skip = (page - 1) * limit;
+    const paginatedCourses = courses.slice(skip, skip + limit);
+    const total = courses.length;
 
-    const courseList = courses.map((course) => ({
-      _id: course._id,
+    const courseList = paginatedCourses.map((course: any) => ({
+      _id: course.courseId,
       title: course.title,
       status: course.published ? 'published' : 'draft',
       pagesCount: course.pages?.length || 0,
@@ -245,12 +247,12 @@ export const publishCourse = async (req: Request, res: Response): Promise<void> 
   const { id } = req.params;
   const { published } = req.body;
 
-  if (!mongoose.Types.ObjectId.isValid(id)) {
+  if (!isValidUUID(id)) {
     throw new ValidationError('Invalid course ID format');
   }
 
   try {
-    const updatedCourse = await Course.findByIdAndUpdate(id, { published }, { new: true });
+    const updatedCourse = await CourseService.updateCourse(id, { published });
 
     if (!updatedCourse) {
       throw new NotFoundError('Course not found');
@@ -260,7 +262,7 @@ export const publishCourse = async (req: Request, res: Response): Promise<void> 
       success: true,
       message: published ? 'Course published successfully' : 'Course unpublished successfully',
       data: {
-        _id: updatedCourse._id,
+        _id: updatedCourse.courseId,
         title: updatedCourse.title,
         published: updatedCourse.published,
         publishedAt: new Date(),
@@ -278,30 +280,18 @@ export const addPageToCourse = async (req: Request, res: Response): Promise<void
   const { id } = req.params;
   const pageData = req.body;
 
-  if (!mongoose.Types.ObjectId.isValid(id)) {
+  if (!isValidUUID(id)) {
     throw new ValidationError('Invalid course ID format');
   }
 
   try {
-    const course = await Course.findById(id);
-
-    if (!course) {
-      throw new NotFoundError('Course not found');
-    }
-
-    const newPage = {
-      ...pageData,
-      _id: new mongoose.Types.ObjectId(),
-    };
-
-    course.pages?.push(newPage as any);
-    await course.save();
+    const newPage = await CourseService.addPageToCourse(id, pageData);
 
     res.status(201).json({
       success: true,
       message: 'Page added successfully',
       data: {
-        _id: newPage._id,
+        _id: newPage.pageId,
         order: newPage.order,
         type: newPage.type,
         courseId: id,
@@ -311,10 +301,6 @@ export const addPageToCourse = async (req: Request, res: Response): Promise<void
     if (error instanceof AppError) {
       throw error;
     }
-    if (error instanceof mongoose.Error.ValidationError) {
-      const messages = Object.values(error.errors).map((err) => err.message);
-      throw new ValidationError(`Validation error: ${messages.join(', ')}`);
-    }
     throw new DatabaseError('Failed to add page to course');
   }
 };
@@ -323,43 +309,26 @@ export const updateCoursePage = async (req: Request, res: Response): Promise<voi
   const { id, pageId } = req.params;
   const updateData = req.body;
 
-  if (!mongoose.Types.ObjectId.isValid(id)) {
+  if (!isValidUUID(id)) {
     throw new ValidationError('Invalid course ID format');
   }
 
   try {
-    const course = await Course.findById(id);
-
-    if (!course) {
-      throw new NotFoundError('Course not found');
-    }
-
-    const pageIndex = course.pages?.findIndex((page) => page._id?.toString() === pageId);
-
-    if (pageIndex === undefined || pageIndex === -1) {
-      throw new NotFoundError('Page not found');
-    }
-
-    Object.assign(course.pages![pageIndex], updateData);
-    await course.save();
+    const updatedPage = await CourseService.updateCoursePage(id, pageId, updateData);
 
     res.status(200).json({
       success: true,
       message: 'Page updated successfully',
       data: {
         _id: pageId,
-        order: course.pages![pageIndex].order,
-        type: course.pages![pageIndex].type,
+        order: updatedPage.order,
+        type: updatedPage.type,
         courseId: id,
       },
     });
   } catch (error) {
     if (error instanceof AppError) {
       throw error;
-    }
-    if (error instanceof mongoose.Error.ValidationError) {
-      const messages = Object.values(error.errors).map((err) => err.message);
-      throw new ValidationError(`Validation error: ${messages.join(', ')}`);
     }
     throw new DatabaseError('Failed to update page');
   }
@@ -368,25 +337,12 @@ export const updateCoursePage = async (req: Request, res: Response): Promise<voi
 export const deleteCoursePage = async (req: Request, res: Response): Promise<void> => {
   const { id, pageId } = req.params;
 
-  if (!mongoose.Types.ObjectId.isValid(id)) {
+  if (!isValidUUID(id)) {
     throw new ValidationError('Invalid course ID format');
   }
 
   try {
-    const course = await Course.findById(id);
-
-    if (!course) {
-      throw new NotFoundError('Course not found');
-    }
-
-    const pageIndex = course.pages?.findIndex((page) => page._id?.toString() === pageId);
-
-    if (pageIndex === undefined || pageIndex === -1) {
-      throw new NotFoundError('Page not found');
-    }
-
-    course.pages?.splice(pageIndex, 1);
-    await course.save();
+    await CourseService.deleteCoursePage(id, pageId);
 
     res.status(200).json({
       success: true,
@@ -408,35 +364,25 @@ export const uploadResource = async (req: Request, res: Response): Promise<void>
   const { id } = req.params;
   const { fileName, fileUrl } = req.body;
 
-  if (!mongoose.Types.ObjectId.isValid(id)) {
+  if (!isValidUUID(id)) {
     throw new ValidationError('Invalid course ID format');
   }
 
   try {
-    const course = await Course.findById(id);
-
-    if (!course) {
-      throw new NotFoundError('Course not found');
-    }
-
-    const newResource = {
-      _id: new mongoose.Types.ObjectId(),
+    const newResource = await CourseService.addResource(id, {
       fileName,
       fileUrl,
-    };
-
-    course.resources?.push(newResource as any);
-    await course.save();
+    });
 
     res.status(201).json({
       success: true,
       message: 'Resource uploaded successfully',
       data: {
-        _id: newResource._id,
+        _id: newResource.resourceId,
         fileName,
         fileUrl,
         courseId: id,
-        uploadedAt: new Date(),
+        uploadedAt: newResource.uploadedAt,
       },
     });
   } catch (error) {
@@ -450,25 +396,12 @@ export const uploadResource = async (req: Request, res: Response): Promise<void>
 export const deleteResource = async (req: Request, res: Response): Promise<void> => {
   const { id, resourceId } = req.params;
 
-  if (!mongoose.Types.ObjectId.isValid(id)) {
+  if (!isValidUUID(id)) {
     throw new ValidationError('Invalid course ID format');
   }
 
   try {
-    const course = await Course.findById(id);
-
-    if (!course) {
-      throw new NotFoundError('Course not found');
-    }
-
-    const resourceIndex = course.resources?.findIndex((resource) => resource._id?.toString() === resourceId);
-
-    if (resourceIndex === undefined || resourceIndex === -1) {
-      throw new NotFoundError('Resource not found');
-    }
-
-    course.resources?.splice(resourceIndex, 1);
-    await course.save();
+    await CourseService.deleteResource(id, resourceId);
 
     res.status(200).json({
       success: true,
