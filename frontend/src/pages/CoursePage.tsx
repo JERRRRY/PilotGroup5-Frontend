@@ -36,14 +36,7 @@ const CoursePage = () => {
                 }
 
                 const data = await getCourseById(id);
-                console.log("Fetched course data:", data);
-                // Validate that we have a course with required fields
-                if (data && data.title && data.description && data.thumbnail) {
-                    setCourse(data);
-                } else {
-                    console.warn("Course data is invalid or missing required fields:", data);
-                    setCourse(null);
-                }
+                setCourse(data);
             } catch (error) {
                 console.error("Error fetching course:", error);
                 setCourse(null);

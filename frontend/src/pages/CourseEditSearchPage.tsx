@@ -10,7 +10,7 @@ const CourseEditSearchPage = () => {
 
   useEffect(() => {
     const fetchCourses = async () => {
-      const res = await fetch("http://localhost:3000/api/v1/courses");
+      const res = await fetch("/api/v1/courses");
       const data = await res.json();
       setCourses(Array.isArray(data) ? data : data.courses || data.data || []);
     };
