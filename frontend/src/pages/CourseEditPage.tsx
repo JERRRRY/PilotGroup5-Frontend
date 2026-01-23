@@ -8,13 +8,13 @@ import {
   updateCourse,
   deleteCourse,
 } from "../api/course";
-import type { Course } from '../types/course';
+import type { Course } from "../types/course";
 
 const emptyCourse: Course = {
   title: "",
   description: "",
   thumbnail: "",
-  pages: [], // ✅ important
+  pages: [], 
 };
 
 const CourseEditPage = () => {
@@ -25,7 +25,8 @@ const CourseEditPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Load course (edit mode)
+  /* ===================== Load ===================== */
+
   useEffect(() => {
     if (!id) {
       setCourse(emptyCourse);
@@ -37,6 +38,8 @@ const CourseEditPage = () => {
         setLoading(true);
         const data = await getCourseById(id);
         setCourse(data);
+        console.log(data);
+
       } catch (err) {
         console.error(err);
         setError("Failed to load course");
@@ -48,13 +51,15 @@ const CourseEditPage = () => {
     loadCourse();
   }, [id]);
 
-  // Handle course field changes
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  /* ===================== Handlers ===================== */
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
     setCourse((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Save (create or update)
   const handleSave = async () => {
     try {
       setLoading(true);
@@ -75,7 +80,6 @@ const CourseEditPage = () => {
     }
   };
 
-  // Delete course
   const handleDelete = async () => {
     if (!course._id || !window.confirm(`Delete "${course.title}"?`)) return;
 
@@ -91,27 +95,27 @@ const CourseEditPage = () => {
     }
   };
 
+  /* ===================== UI ===================== */
+
   return (
     <div className="min-h-screen">
       <Header />
 
       <div className="max-w-3xl mx-auto p-6">
-        {/* Page Title */}
         <h1 className="text-xl font-semibold mb-6">
           {id ? "Edit Course" : "Add New Course"}
         </h1>
 
-        {/* Error */}
         {error && (
           <div className="mb-4 rounded bg-red-50 px-4 py-2 text-red-600">
             {error}
           </div>
         )}
 
-        {/* ================= Course Info Form ================= */}
+        {/* Course Info */}
         <CourseForm course={course} onChange={handleChange} />
 
-        {/* ================= Pages Section ================= */}
+        {/* Pages */}
         {id && (
           <div className="mt-10">
             <div className="flex justify-between items-center mb-4">
@@ -125,18 +129,20 @@ const CourseEditPage = () => {
               </Link>
             </div>
 
-            {(!course.pages || course.pages.length === 0) && (
+            { (course.pages ?? []).length === 0 && (
               <p className="text-slate-500 text-sm">
                 No pages added yet.
               </p>
             )}
 
             <div className="space-y-2">
-              {course.pages
-                ?.sort((a, b) => a.order - b.order)
-                .map((page, index) => (
+              { 
+                (course.pages ?? [])
+                .slice()
+                .sort((a, b) => a.order - b.order)
+                .map((page) => (
                   <div
-                    key={index}
+                    key={page._id} 
                     className="flex items-center justify-between border rounded px-3 py-2"
                   >
                     <div>
@@ -150,7 +156,7 @@ const CourseEditPage = () => {
                     </div>
 
                     <Link
-                      to={`/course/edit/${id}/pages/${index}`}
+                      to={`/course/edit/${id}/pages/${page._id}`}
                       className="text-sm text-violet-600 hover:underline"
                     >
                       Edit
@@ -161,7 +167,7 @@ const CourseEditPage = () => {
           </div>
         )}
 
-        {/* ================= Actions ================= */}
+        {/* Actions */}
         <div className="flex gap-4 mt-10">
           <button
             onClick={handleSave}
@@ -175,7 +181,7 @@ const CourseEditPage = () => {
             <button
               onClick={handleDelete}
               disabled={loading}
-              className="border border-red-500 text-red-600 px-4 py-2 rounded hover:bg-red-50 disabled:opacity-50"
+              className="border border-red-500 text-red-600 px-4 py-2 rounded"
             >
               Delete Course
             </button>

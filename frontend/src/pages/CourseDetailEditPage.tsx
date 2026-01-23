@@ -1,30 +1,48 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Header from "../components/common/Header";
-import { getCourseById, updateCourse } from "../api/course";
-import type { Course, Page } from '../types/course';
+import {
+  getCourseById,
+  addPageToCourse,
+  updateCoursePage,
+  deleteCoursePage,
+} from "../api/course";
+import type { Course, Page } from "../types/course";
 
 const emptyPage: Page = {
   order: 1,
-  type: "text", // text | video | quiz
+  type: "text",
   title: "",
-  textContent: "",
   videoUrls: [],
   images: [],
+  textContent: "",
   quizData: [],
 };
 
 const CourseDetailEditPage = () => {
-  const { id: courseId, pageIndex } = useParams<{ id: string; pageIndex?: string }>();
+  const { id: courseId, pageId } = useParams<{
+    id: string;
+    pageId: string;
+  }>();
+
+  const isCreateMode = pageId === "new";
+  const isEditMode = pageId !== "new";
+
   const navigate = useNavigate();
 
-  const isEditMode = pageIndex !== undefined;
+  console.log(
+    "CourseDetailEditPage - isEditMode:",
+    isEditMode,
+    "isCreateMode:",
+    isCreateMode,
+    "pageId:",
+    pageId,
+  );
 
   const [course, setCourse] = useState<Course | null>(null);
   const [page, setPage] = useState<Page>(emptyPage);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
 
   useEffect(() => {
     if (!courseId) return;
@@ -34,13 +52,21 @@ const CourseDetailEditPage = () => {
         setLoading(true);
         const data = await getCourseById(courseId);
         setCourse(data);
+        
+        if (isEditMode && pageId) {
+            console.log("CourseDetailEditPage - loaded course data");
+          const existingPage = (data.pages ?? []).find((p) => p._id === pageId);
 
-        if (isEditMode && pageIndex !== undefined && data.pages) {
-          setPage(data.pages[Number(pageIndex)]);
+          if (!existingPage) {
+            throw new Error("Page not found");
+          }
+
+          setPage(existingPage);
         } else {
+          console.log("CourseDetailEditPage - creating new page");
           setPage({
             ...emptyPage,
-            order: data.pages ? data.pages.length + 1 : 1,
+            order: (data.pages ?? []).length + 1,
           });
         }
       } catch (err) {
@@ -52,35 +78,30 @@ const CourseDetailEditPage = () => {
     };
 
     load();
-  }, [courseId, pageIndex, isEditMode]);
+  }, [courseId, pageId]);
 
+  /* ===================== Handlers ===================== */
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
+  ) => {
     const { name, value } = e.target;
     setPage((prev) => ({ ...prev, [name]: value }));
   };
 
-
   const handleSave = async () => {
-    if (!courseId || !course) return;
-
+    if (!courseId) return;
     try {
       setLoading(true);
       setError(null);
 
-      const updatedPages = [...(course.pages || [])];
-
-      if (isEditMode && pageIndex !== undefined) {
-        updatedPages[Number(pageIndex)] = page;
+      if (isEditMode && pageId) {
+        await updateCoursePage(courseId, pageId, page);
       } else {
-        updatedPages.push(page);
+        await addPageToCourse(courseId, page);
       }
-
-      await updateCourse(courseId, {
-        ...course,
-        pages: updatedPages,
-      });
-
       navigate(`/course/edit/${courseId}`);
     } catch (err) {
       console.error(err);
@@ -90,22 +111,13 @@ const CourseDetailEditPage = () => {
     }
   };
 
-
   const handleDelete = async () => {
-    if (!courseId || !course || pageIndex === undefined || !window.confirm(`Delete page "${page.title}"?`)) return;
+    if (!courseId || !pageId) return;
+    if (!window.confirm(`Delete page "${page.title}"?`)) return;
 
     try {
       setLoading(true);
-
-      const updatedPages = (course.pages || []).filter(
-        (_, index) => index !== Number(pageIndex)
-      );
-
-      await updateCourse(courseId, {
-        ...course,
-        pages: updatedPages,
-      });
-
+      await deleteCoursePage(courseId, pageId);
       navigate(`/course/edit/${courseId}`);
     } catch (err) {
       console.error(err);
@@ -116,6 +128,8 @@ const CourseDetailEditPage = () => {
   };
 
   if (!course) return null;
+
+  /* ===================== UI ===================== */
 
   return (
     <div className="min-h-screen">
@@ -132,7 +146,6 @@ const CourseDetailEditPage = () => {
           </div>
         )}
 
-        {/* Page Form */}
         <div className="space-y-4">
           <input
             name="title"
@@ -151,13 +164,14 @@ const CourseDetailEditPage = () => {
             <option value="text">Text</option>
             <option value="video">Video</option>
             <option value="quiz">Quiz</option>
+            <option value="image">Image</option>
           </select>
 
           {/* TEXT */}
           {page.type === "text" && (
             <textarea
               name="textContent"
-              value={page.textContent || ""}
+              value={page.textContent}
               onChange={handleChange}
               rows={5}
               placeholder="Text content"
@@ -168,32 +182,35 @@ const CourseDetailEditPage = () => {
           {/* VIDEO */}
           {page.type === "video" && (
             <input
-              value={page.videoUrls?.[0] || ""}
+              value={(page.videoUrls ?? [])[0] || ""}
               onChange={(e) =>
-                setPage({
-                  ...page,
-                  videoUrls: [e.target.value],
-                })
+                setPage({ ...page, videoUrls: [e.target.value] })
               }
               placeholder="YouTube video URL"
               className="w-full border rounded px-3 py-2"
             />
           )}
 
-          {/* QUIZ (placeholder) */}
+          {/* QUIZ */}
           {page.type === "quiz" && (
             <div className="text-sm text-slate-500">
               Quiz editor coming soon!
             </div>
           )}
+
+          {/* IMAGE */}
+          {page.type === "image" && (
+            <div className="text-sm text-slate-500">
+              Image editor coming soon!
+            </div>
+          )}
         </div>
 
-        {/* Actions */}
         <div className="flex gap-4 mt-8">
           <button
             onClick={handleSave}
             disabled={loading}
-            className="bg-violet-600 text-white px-4 py-2 rounded disabled:opacity-50"
+            className="bg-violet-600 text-white px-4 py-2 rounded"
           >
             {loading ? "Saving..." : "Save Page"}
           </button>
@@ -202,7 +219,7 @@ const CourseDetailEditPage = () => {
             <button
               onClick={handleDelete}
               disabled={loading}
-              className="border border-red-500 text-red-600 px-4 py-2 rounded hover:bg-red-50"
+              className="border border-red-500 text-red-600 px-4 py-2 rounded"
             >
               Delete Page
             </button>

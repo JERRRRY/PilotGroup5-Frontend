@@ -14,6 +14,7 @@ export interface QuizQuestion {
 export type PageType = 'video' | 'text' | 'quiz' | 'image';
 
 export interface Page {
+  _id?: string; 
   order: number;
   type: PageType;
   title: string;

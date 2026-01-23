@@ -32,6 +32,7 @@ export const getAllCourses = async (req, res) => {
   }
 };
 
+
 export const getCourseById = async (req, res) => {
   const { id } = req.params;
 
@@ -48,6 +49,7 @@ export const getCourseById = async (req, res) => {
     // Format pages according to mock data structure
     const formattedPages = (course.pages || []).map((page) => {
       const formattedPage = {
+        _id: page._id,
         order: page.order,
         type: page.type,
         title: page.title,
@@ -81,4 +83,5 @@ export const getCourseById = async (req, res) => {
   }
 };
 
-//
+
+

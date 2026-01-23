@@ -26,12 +26,7 @@ const router = createBrowserRouter([
     errorElement: <NotFoundPage />,
   },
   {
-    path: "/course/edit/:id/pages/new",
-    element: <CourseDetailEditPage />,
-    errorElement: <NotFoundPage />,
-  },
-  {
-    path: "/course/edit/:id/pages/:pageIndex",
+    path: "/course/edit/:id/pages/:pageId",
     element: <CourseDetailEditPage />,
     errorElement: <NotFoundPage />,
   },

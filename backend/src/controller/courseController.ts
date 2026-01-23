@@ -56,6 +56,7 @@ export const getCourseById = async (req: Request, res: Response): Promise<void> 
     // Format pages according to mock data structure
     const formattedPages = (course.pages || []).map((page: any) => {
       return {
+        _id: page._id,
         order: page.order,
         type: page.type,
         title: page.title,
