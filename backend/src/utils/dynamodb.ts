@@ -54,12 +54,18 @@ export async function createCourse(courseData: any) {
 export async function updateCourse(courseId: string, updateData: any) {
   const updateExpressions: string[] = [];
   const expressionAttributeValues: Record<string, any> = {};
+  const expressionAttributeNames: Record<string, string> = {};
   let counter = 0;
 
+  // Fields to skip (primary key and frontend aliases)
+  const skipFields = ['courseId', '_id'];
+
   for (const [key, value] of Object.entries(updateData)) {
-    if (key !== 'courseId') {
+    if (!skipFields.includes(key)) {
       const placeholder = `:val${counter}`;
-      updateExpressions.push(`${key} = ${placeholder}`);
+      const nameAlias = `#attr${counter}`;
+      expressionAttributeNames[nameAlias] = key;
+      updateExpressions.push(`${nameAlias} = ${placeholder}`);
       expressionAttributeValues[placeholder] = value;
       counter++;
     }
@@ -73,6 +79,7 @@ export async function updateCourse(courseId: string, updateData: any) {
     TableName: COURSES_TABLE,
     Key: { courseId },
     UpdateExpression: `SET ${updateExpressions.join(', ')}`,
+    ExpressionAttributeNames: expressionAttributeNames,
     ExpressionAttributeValues: expressionAttributeValues,
     ReturnValues: 'ALL_NEW',
   });
