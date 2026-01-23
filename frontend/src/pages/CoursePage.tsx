@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import Header from '../components/common/Header';
 import CourseContentList from '../components/course/CourseContentList';
 import { mockCourseData } from '../data/mockCourse';
+import { getCourseById } from '../api/course';
 import type { Course } from '../types/course';
 
 const CoursePage = () => {
@@ -28,30 +29,30 @@ const CoursePage = () => {
                 return;
             }
             try {
-                const res = await fetch(`/api/v1/courses/${id}`);
-
-                if (!res.ok) {
-                    throw new Error("Failed to fetch course");
+                if (!id) {
+                    setCourse(null);
+                    setLoading(false);
+                    return;
                 }
 
-                const json = await res.json();
-
-                if (json.success) {
-                    setCourse(json.data);
+                const data = await getCourseById(id);
+                console.log("Fetched course data:", data);
+                // Validate that we have a course with required fields
+                if (data && data.title && data.description && data.thumbnail) {
+                    setCourse(data);
                 } else {
+                    console.warn("Course data is invalid or missing required fields:", data);
                     setCourse(null);
                 }
-
-                setLoading(false);
             } catch (error) {
                 console.error("Error fetching course:", error);
+                setCourse(null);
+            } finally {
                 setLoading(false);
             }
         };
 
-        if (id) {
-            fetchCourse();
-        }
+        fetchCourse();
     }, [id]);
 
     const handleStartLearningClick = () => {

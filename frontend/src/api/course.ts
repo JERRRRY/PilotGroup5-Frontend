@@ -8,7 +8,20 @@ const jsonHeaders = {
 };
 
 async function parseJSON<T>(res: Response): Promise<T> {
+  if (!res.ok) {
+    const errorText = await res.text();
+    let errorMessage = `HTTP error! status: ${res.status}`;
+    try {
+      const errorJson = JSON.parse(errorText);
+      errorMessage = errorJson.message || errorJson.error || errorMessage;
+    } catch {
+      // If error response is not JSON, use the text or default message
+      errorMessage = errorText || errorMessage;
+    }
+    throw new Error(errorMessage);
+  }
   const data = await res.json();
+  // Handle different response formats: { data: {...} } or direct {...}
   return data.data ?? data;
 }
 
@@ -20,7 +33,12 @@ export const getCourses = async (): Promise<Course[]> => {
 
 export const getCourseById = async (id: string): Promise<Course> => {
   const res = await fetch(`${BASE_URL}/${id}`);
-  return parseJSON<Course>(res);
+  const data = await parseJSON<Course>(res);
+  // Validate that we got a valid course object with required fields
+  if (!data || typeof data !== 'object' || !data.title || !data.description || !data.thumbnail) {
+    throw new Error(`Invalid course data received for id: ${id}. Missing required fields.`);
+  }
+  return data;
 };
 
 export const createCourse = async (course: Course): Promise<Course> => {
