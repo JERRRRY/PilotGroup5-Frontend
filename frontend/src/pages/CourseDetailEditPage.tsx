@@ -52,9 +52,9 @@ const CourseDetailEditPage = () => {
         setLoading(true);
         const data = await getCourseById(courseId);
         setCourse(data);
-        
+
         if (isEditMode && pageId) {
-            console.log("CourseDetailEditPage - loaded course data");
+          console.log("CourseDetailEditPage - loaded course data");
           const existingPage = (data.pages ?? []).find((p) => p._id === pageId);
 
           if (!existingPage) {
@@ -193,15 +193,118 @@ const CourseDetailEditPage = () => {
 
           {/* QUIZ */}
           {page.type === "quiz" && (
-            <div className="text-sm text-slate-500">
-              Quiz editor coming soon!
+            <div className="space-y-4">
+              {(page.quizData ?? []).map((q, qIndex) => (
+                <div key={qIndex} className="border rounded p-4 space-y-2">
+                  <input
+                    value={q.question}
+                    onChange={(e) => {
+                      const quizData = [...(page.quizData ?? [])];
+                      quizData[qIndex].question = e.target.value;
+                      setPage({ ...page, quizData });
+                    }}
+                    placeholder={`Question ${qIndex + 1}`}
+                    className="w-full border rounded px-3 py-2"
+                  />
+
+                  {q.options.map((opt, oIndex) => (
+                    <div key={oIndex} className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        checked={q.correctAnswerIndex === oIndex}
+                        onChange={() => {
+                          const quizData = [...(page.quizData ?? [])];
+                          quizData[qIndex].correctAnswerIndex = oIndex;
+                          setPage({ ...page, quizData });
+                        }}
+                      />
+                      <input
+                        value={opt}
+                        onChange={(e) => {
+                          const quizData = [...(page.quizData ?? [])];
+                          quizData[qIndex].options[oIndex] = e.target.value;
+                          setPage({ ...page, quizData });
+                        }}
+                        placeholder={`Option ${oIndex + 1}`}
+                        className="flex-1 border rounded px-2 py-1"
+                      />
+                    </div>
+                  ))}
+
+                  <button
+                    onClick={() => {
+                      const quizData = (page.quizData ?? []).filter(
+                        (_, i) => i !== qIndex,
+                      );
+                      setPage({ ...page, quizData });
+                    }}
+                    className="text-sm text-red-600"
+                  >
+                    Delete Question
+                  </button>
+                </div>
+              ))}
+
+              <button
+                onClick={() =>
+                  setPage({
+                    ...page,
+                    quizData: [
+                      ...(page.quizData ?? []),
+                      {
+                        question: "",
+                        options: ["", "", "", ""],
+                        correctAnswerIndex: 0,
+                      },
+                    ],
+                  })
+                }
+                className="border px-3 py-2 rounded"
+              >
+                + Add Question
+              </button>
             </div>
           )}
 
           {/* IMAGE */}
           {page.type === "image" && (
-            <div className="text-sm text-slate-500">
-              Image editor coming soon!
+            <div className="space-y-4">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+
+                  const reader = new FileReader();
+                  reader.onload = () => {
+                    setPage({
+                      ...page,
+                      images: [...(page.images ?? []), reader.result as string],
+                    });
+                  };
+                  reader.readAsDataURL(file);
+                }}
+              />
+
+              <div className="grid grid-cols-2 gap-4">
+                {(page.images ?? []).map((img, index) => (
+                  <div key={index} className="relative">
+                    <img src={img} alt="Uploaded" className="rounded border" />
+                    <button
+                      onClick={() => {
+                        const images = (page.images ?? []).filter(
+                          (_, i) => i !== index,
+                        );
+                        setPage({ ...page, images });
+                      }}
+                      className="absolute top-1 right-1 bg-red-600 text-white text-xs px-2 py-1 rounded"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>

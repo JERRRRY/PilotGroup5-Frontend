@@ -19,7 +19,7 @@ export interface Page {
   type: PageType;
   title: string;
   videoUrls?: string[];
-  images?: Image[];
+  images?: string[];
   textContent?: string;
   quizData?: QuizQuestion[];
 }
