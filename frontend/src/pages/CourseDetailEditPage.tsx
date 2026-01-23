@@ -193,44 +193,90 @@ const CourseDetailEditPage = () => {
 
           {/* QUIZ */}
           {page.type === "quiz" && (
-            <div className="space-y-4">
+            <div className="space-y-6">
               {(page.quizData ?? []).map((q, qIndex) => (
-                <div key={qIndex} className="border rounded p-4 space-y-2">
-                  <input
-                    value={q.question}
-                    onChange={(e) => {
-                      const quizData = [...(page.quizData ?? [])];
-                      quizData[qIndex].question = e.target.value;
-                      setPage({ ...page, quizData });
-                    }}
-                    placeholder={`Question ${qIndex + 1}`}
-                    className="w-full border rounded px-3 py-2"
-                  />
+                <div
+                  key={qIndex}
+                  className="border rounded-lg p-4 space-y-4 bg-white"
+                >
+                  {/* Question */}
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      Question {qIndex + 1}
+                    </label>
+                    <input
+                      value={q.question}
+                      onChange={(e) => {
+                        const quizData = [...(page.quizData ?? [])];
+                        quizData[qIndex] = {
+                          ...quizData[qIndex],
+                          question: e.target.value,
+                        };
+                        setPage({ ...page, quizData });
+                      }}
+                      placeholder="Enter question"
+                      className="w-full border rounded px-3 py-2"
+                    />
+                  </div>
 
-                  {q.options.map((opt, oIndex) => (
-                    <div key={oIndex} className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        checked={q.correctAnswerIndex === oIndex}
-                        onChange={() => {
-                          const quizData = [...(page.quizData ?? [])];
-                          quizData[qIndex].correctAnswerIndex = oIndex;
-                          setPage({ ...page, quizData });
-                        }}
-                      />
-                      <input
-                        value={opt}
-                        onChange={(e) => {
-                          const quizData = [...(page.quizData ?? [])];
-                          quizData[qIndex].options[oIndex] = e.target.value;
-                          setPage({ ...page, quizData });
-                        }}
-                        placeholder={`Option ${oIndex + 1}`}
-                        className="flex-1 border rounded px-2 py-1"
-                      />
-                    </div>
-                  ))}
+                  {/* Options */}
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Options</p>
 
+                    {q.options.map((opt, oIndex) => {
+                      const isCorrect = q.correctAnswerIndex === oIndex;
+
+                      return (
+                        <div
+                          key={oIndex}
+                          className={`flex items-center gap-3 p-2 rounded border ${
+                            isCorrect
+                              ? "border-green-500 bg-green-50"
+                              : "border-slate-200"
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name={`correct-answer-${qIndex}`}
+                            checked={isCorrect}
+                            onChange={() => {
+                              const quizData = [...(page.quizData ?? [])];
+                              quizData[qIndex] = {
+                                ...quizData[qIndex],
+                                correctAnswerIndex: oIndex,
+                              };
+                              setPage({ ...page, quizData });
+                            }}
+                          />
+
+                          <input
+                            value={opt}
+                            onChange={(e) => {
+                              const quizData = [...(page.quizData ?? [])];
+                              const options = [...quizData[qIndex].options];
+                              options[oIndex] = e.target.value;
+
+                              quizData[qIndex] = {
+                                ...quizData[qIndex],
+                                options,
+                              };
+                              setPage({ ...page, quizData });
+                            }}
+                            placeholder={`Option ${oIndex + 1}`}
+                            className="flex-1 border rounded px-2 py-1"
+                          />
+
+                          {isCorrect && (
+                            <span className="text-xs font-medium text-green-600">
+                              Correct
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Delete Question */}
                   <button
                     onClick={() => {
                       const quizData = (page.quizData ?? []).filter(
@@ -238,13 +284,14 @@ const CourseDetailEditPage = () => {
                       );
                       setPage({ ...page, quizData });
                     }}
-                    className="text-sm text-red-600"
+                    className="text-sm text-red-600 hover:underline"
                   >
                     Delete Question
                   </button>
                 </div>
               ))}
 
+              {/* Add Question */}
               <button
                 onClick={() =>
                   setPage({
@@ -259,7 +306,7 @@ const CourseDetailEditPage = () => {
                     ],
                   })
                 }
-                className="border px-3 py-2 rounded"
+                className="border px-4 py-2 rounded hover:bg-slate-50"
               >
                 + Add Question
               </button>
