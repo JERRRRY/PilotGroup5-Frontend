@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 // import mongoose from 'mongoose'; // MongoDB - commented out
 import courseRoutes from './routes/courseRoutes';
+import cmsRoutes from './routes/cmsRoutes';
 import { errorHandler, notFoundHandler } from './middleware/errorMiddleware';
 import { docClient } from './utils/dynamodb'; // DynamoDB connection
 
@@ -42,6 +43,7 @@ mongoose
 
 // Routes
 app.use(`${API_PREFIX}/courses`, courseRoutes);
+app.use(`${API_PREFIX}/cms`, cmsRoutes); // CMS routes as per MainDesign.md
 
 // Health check endpoint
 app.get('/health', (req, res) => {

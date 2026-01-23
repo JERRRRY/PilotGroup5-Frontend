@@ -34,7 +34,7 @@ export const getAllCourses = async (req: Request, res: Response): Promise<void> 
         videoCount: videoCount,
       };
     });
-    res.status(200).json({ success: true, data: courseCards });
+    res.status(200).json(courseCards);
   } catch (error) {
     throw new DatabaseError('Failed to fetch courses');
   }
@@ -56,7 +56,7 @@ export const getCourseById = async (req: Request, res: Response): Promise<void> 
     // Format pages according to mock data structure
     const formattedPages = (course.pages || []).map((page: any) => {
       return {
-        _id: page._id,
+        _id: page.pageId,
         order: page.order,
         type: page.type,
         title: page.title,
@@ -78,7 +78,7 @@ export const getCourseById = async (req: Request, res: Response): Promise<void> 
       pages: formattedPages,
     };
 
-    res.status(200).json({ success: true, data: courseDetail });
+    res.status(200).json(courseDetail);
   } catch (error) {
     if (error instanceof AppError) {
       throw error;
@@ -110,7 +110,6 @@ export const createCourse = async (req: Request, res: Response): Promise<void> =
     });
 
     res.status(201).json({
-      success: true,
       message: 'Course created successfully',
       data: {
         _id: newCourse.courseId,
@@ -135,19 +134,20 @@ export const updateCourse = async (req: Request, res: Response): Promise<void> =
   }
 
   try {
-    const updatedCourse = await CourseService.updateCourse(id, req.body);
-
-    if (!updatedCourse) {
+    // Check if course exists before updating
+    const existingCourse = await CourseService.getCourseById(id);
+    if (!existingCourse) {
       throw new NotFoundError('Course not found');
     }
 
+    const updatedCourse = await CourseService.updateCourse(id, req.body);
+
     res.status(200).json({
-      success: true,
       message: 'Course updated successfully',
       data: {
-        _id: updatedCourse.courseId,
-        title: updatedCourse.title,
-        updatedAt: updatedCourse.updatedAt,
+        _id: updatedCourse?.courseId || id,
+        title: updatedCourse?.title || req.body.title,
+        updatedAt: updatedCourse?.updatedAt,
       },
     });
   } catch (error) {
@@ -174,7 +174,6 @@ export const deleteCourse = async (req: Request, res: Response): Promise<void> =
     await CourseService.deleteCourse(id);
 
     res.status(200).json({
-      success: true,
       message: 'Course deleted successfully',
       data: {
         _id: id,
@@ -226,7 +225,6 @@ export const getAllCoursesForCMS = async (req: Request, res: Response): Promise<
     }));
 
     res.status(200).json({
-      success: true,
       message: 'Courses retrieved successfully',
       data: courseList,
       pagination: {
@@ -253,19 +251,22 @@ export const publishCourse = async (req: Request, res: Response): Promise<void> 
   }
 
   try {
-    const updatedCourse = await CourseService.updateCourse(id, { published });
-
-    if (!updatedCourse) {
+    // Check if course exists before updating
+    const existingCourse = await CourseService.getCourseById(id);
+    if (!existingCourse) {
       throw new NotFoundError('Course not found');
     }
 
+    // Convert boolean to string for DynamoDB GSI compatibility
+    const publishedString = published ? 'true' : 'false';
+    const updatedCourse = await CourseService.updateCourse(id, { published: publishedString });
+
     res.status(200).json({
-      success: true,
       message: published ? 'Course published successfully' : 'Course unpublished successfully',
       data: {
-        _id: updatedCourse.courseId,
-        title: updatedCourse.title,
-        published: updatedCourse.published,
+        _id: updatedCourse?.courseId || id,
+        title: updatedCourse?.title || existingCourse.title,
+        published: published,
         publishedAt: new Date(),
       },
     });
@@ -289,7 +290,6 @@ export const addPageToCourse = async (req: Request, res: Response): Promise<void
     const newPage = await CourseService.addPageToCourse(id, pageData);
 
     res.status(201).json({
-      success: true,
       message: 'Page added successfully',
       data: {
         _id: newPage.pageId,
@@ -301,6 +301,10 @@ export const addPageToCourse = async (req: Request, res: Response): Promise<void
   } catch (error) {
     if (error instanceof AppError) {
       throw error;
+    }
+    // Handle "Course not found" from service layer
+    if (error instanceof Error && error.message === 'Course not found') {
+      throw new NotFoundError('Course not found');
     }
     throw new DatabaseError('Failed to add page to course');
   }
@@ -318,7 +322,6 @@ export const updateCoursePage = async (req: Request, res: Response): Promise<voi
     const updatedPage = await CourseService.updateCoursePage(id, pageId, updateData);
 
     res.status(200).json({
-      success: true,
       message: 'Page updated successfully',
       data: {
         _id: pageId,
@@ -346,7 +349,6 @@ export const deleteCoursePage = async (req: Request, res: Response): Promise<voi
     await CourseService.deleteCoursePage(id, pageId);
 
     res.status(200).json({
-      success: true,
       message: 'Page deleted successfully',
       data: {
         pageId,
@@ -376,7 +378,6 @@ export const uploadResource = async (req: Request, res: Response): Promise<void>
     });
 
     res.status(201).json({
-      success: true,
       message: 'Resource uploaded successfully',
       data: {
         _id: newResource.resourceId,
@@ -405,7 +406,6 @@ export const deleteResource = async (req: Request, res: Response): Promise<void>
     await CourseService.deleteResource(id, resourceId);
 
     res.status(200).json({
-      success: true,
       message: 'Resource deleted successfully',
       data: {
         resourceId,

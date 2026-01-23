@@ -24,6 +24,9 @@ import { asyncHandler } from '../middleware/errorMiddleware';
 
 const router: Router = express.Router();
 
+// CMS dashboard (must be before other routes to match correctly)
+router.get('/cms/courses', asyncHandler(getAllCoursesForCMS));
+
 // Public routes (for students)
 router.get('/', asyncHandler(getAllCourses));
 router.get('/:id', asyncHandler(getCourseById));
@@ -32,9 +35,6 @@ router.get('/:id', asyncHandler(getCourseById));
 router.post('/', validateCreateCourse, asyncHandler(createCourse));
 router.put('/:id', validateUpdateCourse, asyncHandler(updateCourse));
 router.delete('/:id', asyncHandler(deleteCourse));
-
-// CMS dashboard
-router.get('/cms/dashboard', asyncHandler(getAllCoursesForCMS));
 
 // Course publishing
 router.put('/:id/publish', validatePublishCourse, asyncHandler(publishCourse));
