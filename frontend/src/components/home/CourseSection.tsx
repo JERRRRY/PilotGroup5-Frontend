@@ -34,9 +34,9 @@ const CourseSection = ({ category, courses }: CourseSectionProps) => {
         </div>
         
         {/* Pending View All 按钮 */}
-        <button className="text-sm font-semibold text-violet-600 hover:text-violet-700 transition-colors hidden sm:block">
+        {/* <button className="text-sm font-semibold text-violet-600 hover:text-violet-700 transition-colors hidden sm:block">
           View All {category} &rarr;
-        </button>
+        </button> */}
       </div>
 
       {/* Grid 布局保持不变 */}
