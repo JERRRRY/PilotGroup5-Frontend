@@ -1,4 +1,6 @@
-export const mockCourseData = {
+import type { Course } from '../types/course';
+
+export const mockCourseData: Course = {
     "_id": "6966fb47ad54e70eff5d4402",
     "title": "Complete React Guide 2025",
     "description": "Learn React from scratch with hooks and Redux. Master the art of modern web development by building real-world projects.",
@@ -39,12 +41,12 @@ export const mockCourseData = {
           {
             "question": "What is a Component?",
             "options": ["A function", "A database", "A server"],
-            "answer": "A function"
+            "correctAnswerIndex": 0
           },
           {
             "question": "Does React use Virtual DOM?",
             "options": ["Yes", "No"],
-            "answer": "Yes"
+            "correctAnswerIndex": 0
           }
         ]
       }

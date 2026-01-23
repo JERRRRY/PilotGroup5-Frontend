@@ -1,11 +1,15 @@
-import React from "react";
 import { Link } from "react-router-dom";
+import type { Course } from '../../types/course';
 
-const CourseCard = ({ course }) => {
+interface CourseCardProps {
+  course: Course;
+}
+
+const CourseCard = ({ course }: CourseCardProps) => {
   // 如果没有 pages 数组，默认为 0
   // 注意：这依赖于后端 getAllCourses 是否返回了 videoCount。
   // 如果后端没算，这里就临时算一下或者显示 0。
-  const videoCount = course.videoCount || (course.pages ? course.pages.filter(p => p.type === 'video').length : 0);
+  const videoCount = course.pages ? course.pages.filter(p => p.type === 'video').length : 0;
 
   return (
     <Link to={`/course/${course._id}`} className="block group h-full">

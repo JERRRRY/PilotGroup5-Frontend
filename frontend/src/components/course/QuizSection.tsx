@@ -1,15 +1,20 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import type { QuizQuestion } from '../../types/course';
 
-const QuizSection = ({ quizData }) => {
+interface QuizSectionProps {
+  quizData: QuizQuestion[];
+}
+
+const QuizSection = ({ quizData }: QuizSectionProps) => {
   // 状态：记录用户的选择 { 题目索引: 选项索引 index }
-  const [userAnswers, setUserAnswers] = useState({});
+  const [userAnswers, setUserAnswers] = useState<Record<number, number>>({});
   // 状态：是否已提交
   const [isSubmitted, setIsSubmitted] = useState(false);
   // 状态：当前分数
   const [score, setScore] = useState(0);
 
   // 处理选项变更 (存入的是选项的 index)
-  const handleOptionChange = (questionIndex, optionIndex) => {
+  const handleOptionChange = (questionIndex: number, optionIndex: number) => {
     if (isSubmitted) return; 
     setUserAnswers(prev => ({
       ...prev,
@@ -33,7 +38,7 @@ const QuizSection = ({ quizData }) => {
   };
 
   // 辅助函数：获取选项的样式
-  const getOptionStyle = (quiz, index, optIdx) => {
+  const getOptionStyle = (quiz: QuizQuestion, index: number, optIdx: number): string => {
     const isSelected = userAnswers[index] === optIdx;
     
     // 判断当前选项是否是正确答案

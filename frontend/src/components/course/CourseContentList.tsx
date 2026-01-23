@@ -1,11 +1,16 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import QuizSection from './QuizSection';
+import type { Page } from '../../types/course';
 
-const CourseContentList = ({ pages }) => {
+interface CourseContentListProps {
+  pages: Page[];
+}
+
+const CourseContentList = ({ pages }: CourseContentListProps) => {
   // 1. 新增状态：记录当前在第几页 (索引从 0 开始)
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  const getEmbedUrl = (url) => {
+  const getEmbedUrl = (url: string): string => {
     if (!url) return "";
     return url.replace("watch?v=", "embed/");
   };

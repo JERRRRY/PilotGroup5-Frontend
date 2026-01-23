@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Header from "../../components/common/Header";
 import CourseSection from "../../components/home/CourseSection";
+import type { Course } from '../../types/course';
 
 const HomePage = () => {
-  const [courses, setCourses] = useState([]);
+  const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true); // ✅ 新增 loading 状态
 
   useEffect(() => {

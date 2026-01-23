@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import CourseCard from "../components/home/CourseCard";
 import Header from "../components/common/Header";
+import type { Course } from '../types/course';
 
 const CourseEditSearchPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [courses, setCourses] = useState([]);
+  const [courses, setCourses] = useState<Course[]>([]);
 
   useEffect(() => {
     const fetchCourses = async () => {

@@ -1,14 +1,15 @@
-import React, { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import Header from '../components/common/Header';
 import CourseContentList from '../components/course/CourseContentList';
-import { mockCourseData } from '../data/mockCourse.js';
+import { mockCourseData } from '../data/mockCourse';
+import type { Course } from '../types/course';
 
 const CoursePage = () => {
-    const { id } = useParams();
-    const [course, setCourse] = useState(null);
+    const { id } = useParams<{ id: string }>();
+    const [course, setCourse] = useState<Course | null>(null);
     const [loading, setLoading] = useState(true);
-    const contentRef = useRef(null);
+    const contentRef = useRef<HTMLDivElement>(null);
 
     // Mock data toggle
     const USE_MOCK_DATA = false;
@@ -48,7 +49,9 @@ const CoursePage = () => {
             }
         };
 
-        fetchCourse();
+        if (id) {
+            fetchCourse();
+        }
     }, [id]);
 
     const handleStartLearningClick = () => {
@@ -138,7 +141,7 @@ const CoursePage = () => {
                     {/* Content */}
                     <div>
                         <h2 className="text-2xl font-bold text-slate-900 mb-6">Course Content</h2>
-                        <CourseContentList pages={course.pages} /> 
+                        <CourseContentList pages={course.pages || []} /> 
                     </div>
 
 

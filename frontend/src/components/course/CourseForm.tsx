@@ -1,6 +1,11 @@
-import React from 'react'
+import type { Course } from '../../types/course';
 
-const CourseForm = ({ course, onChange }) => {
+interface CourseFormProps {
+  course: Course;
+  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+}
+
+const CourseForm = ({ course, onChange }: CourseFormProps) => {
   return (
     <div className="space-y-4">
       <input
@@ -30,4 +35,4 @@ const CourseForm = ({ course, onChange }) => {
   );
 };
 
-export default CourseForm
+export default CourseForm;

@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Header from "../components/common/Header";
 import { getCourseById, updateCourse } from "../api/course";
+import type { Course, Page } from '../types/course';
 
-const emptyPage = {
+const emptyPage: Page = {
   order: 1,
   type: "text", // text | video | quiz
   title: "",
@@ -14,30 +15,32 @@ const emptyPage = {
 };
 
 const CourseDetailEditPage = () => {
-  const { id: courseId, pageIndex } = useParams();
+  const { id: courseId, pageIndex } = useParams<{ id: string; pageIndex?: string }>();
   const navigate = useNavigate();
 
   const isEditMode = pageIndex !== undefined;
 
-  const [course, setCourse] = useState(null);
-  const [page, setPage] = useState(emptyPage);
+  const [course, setCourse] = useState<Course | null>(null);
+  const [page, setPage] = useState<Page>(emptyPage);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
 
   useEffect(() => {
+    if (!courseId) return;
+
     const load = async () => {
       try {
         setLoading(true);
         const data = await getCourseById(courseId);
         setCourse(data);
 
-        if (isEditMode) {
+        if (isEditMode && pageIndex !== undefined && data.pages) {
           setPage(data.pages[Number(pageIndex)]);
         } else {
           setPage({
             ...emptyPage,
-            order: data.pages.length + 1,
+            order: data.pages ? data.pages.length + 1 : 1,
           });
         }
       } catch (err) {
@@ -52,20 +55,22 @@ const CourseDetailEditPage = () => {
   }, [courseId, pageIndex, isEditMode]);
 
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setPage((prev) => ({ ...prev, [name]: value }));
   };
 
 
   const handleSave = async () => {
+    if (!courseId || !course) return;
+
     try {
       setLoading(true);
       setError(null);
 
-      const updatedPages = [...course.pages];
+      const updatedPages = [...(course.pages || [])];
 
-      if (isEditMode) {
+      if (isEditMode && pageIndex !== undefined) {
         updatedPages[Number(pageIndex)] = page;
       } else {
         updatedPages.push(page);
@@ -87,12 +92,12 @@ const CourseDetailEditPage = () => {
 
 
   const handleDelete = async () => {
-    if (!window.confirm(`Delete page "${page.title}"?`)) return;
+    if (!courseId || !course || pageIndex === undefined || !window.confirm(`Delete page "${page.title}"?`)) return;
 
     try {
       setLoading(true);
 
-      const updatedPages = course.pages.filter(
+      const updatedPages = (course.pages || []).filter(
         (_, index) => index !== Number(pageIndex)
       );
 
@@ -152,7 +157,7 @@ const CourseDetailEditPage = () => {
           {page.type === "text" && (
             <textarea
               name="textContent"
-              value={page.textContent}
+              value={page.textContent || ""}
               onChange={handleChange}
               rows={5}
               placeholder="Text content"
@@ -163,7 +168,7 @@ const CourseDetailEditPage = () => {
           {/* VIDEO */}
           {page.type === "video" && (
             <input
-              value={page.videoUrls[0] || ""}
+              value={page.videoUrls?.[0] || ""}
               onChange={(e) =>
                 setPage({
                   ...page,

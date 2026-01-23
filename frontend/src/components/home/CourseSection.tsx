@@ -1,7 +1,12 @@
-import React from "react";
 import CourseCard from "./CourseCard";
+import type { Course } from '../../types/course';
 
-const CourseSection = ({ category, courses }) => {
+interface CourseSectionProps {
+  category: string;
+  courses: Course[];
+}
+
+const CourseSection = ({ category, courses }: CourseSectionProps) => {
   // 过滤逻辑保持不变
   const categoryCourses = courses.filter(
     (course) => course.category && course.category.includes(category)

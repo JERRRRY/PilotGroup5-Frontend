@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import Header from "../components/common/Header";
 import CourseForm from "../components/course/CourseForm";
@@ -8,8 +8,9 @@ import {
   updateCourse,
   deleteCourse,
 } from "../api/course";
+import type { Course } from '../types/course';
 
-const emptyCourse = {
+const emptyCourse: Course = {
   title: "",
   description: "",
   thumbnail: "",
@@ -17,12 +18,12 @@ const emptyCourse = {
 };
 
 const CourseEditPage = () => {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const [course, setCourse] = useState(emptyCourse);
+  const [course, setCourse] = useState<Course>(emptyCourse);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   // Load course (edit mode)
   useEffect(() => {
@@ -48,7 +49,7 @@ const CourseEditPage = () => {
   }, [id]);
 
   // Handle course field changes
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setCourse((prev) => ({ ...prev, [name]: value }));
   };
@@ -76,7 +77,7 @@ const CourseEditPage = () => {
 
   // Delete course
   const handleDelete = async () => {
-    if (!window.confirm(`Delete "${course.title}"?`)) return;
+    if (!course._id || !window.confirm(`Delete "${course.title}"?`)) return;
 
     try {
       setLoading(true);
@@ -124,7 +125,7 @@ const CourseEditPage = () => {
               </Link>
             </div>
 
-            {course.pages.length === 0 && (
+            {(!course.pages || course.pages.length === 0) && (
               <p className="text-slate-500 text-sm">
                 No pages added yet.
               </p>
@@ -132,7 +133,7 @@ const CourseEditPage = () => {
 
             <div className="space-y-2">
               {course.pages
-                .sort((a, b) => a.order - b.order)
+                ?.sort((a, b) => a.order - b.order)
                 .map((page, index) => (
                   <div
                     key={index}
