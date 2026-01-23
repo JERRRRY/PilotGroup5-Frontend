@@ -8,22 +8,33 @@ const jsonHeaders = {
 };
 
 async function parseJSON<T>(res: Response): Promise<T> {
+  const text = await res.text(); 
+
+  console.log("⬇️ RESPONSE STATUS:", res.status);
+  console.log("⬇️ RESPONSE OK:", res.ok);
+  console.log("⬇️ RESPONSE TEXT:", text);
+
   if (!res.ok) {
-    const errorText = await res.text();
     let errorMessage = `HTTP error! status: ${res.status}`;
+
     try {
-      const errorJson = JSON.parse(errorText);
+      const errorJson = JSON.parse(text);
       errorMessage = errorJson.message || errorJson.error || errorMessage;
     } catch {
-      // If error response is not JSON, use the text or default message
-      errorMessage = errorText || errorMessage;
+      errorMessage = text || errorMessage;
     }
+
     throw new Error(errorMessage);
   }
-  const data = await res.json();
-  // Handle different response formats: { data: {...} } or direct {...}
+
+  if (!text) {
+    return null as T;
+  }
+
+  const data = JSON.parse(text);
   return data.data ?? data;
 }
+
 
 
 export const getCourses = async (): Promise<Course[]> => {
