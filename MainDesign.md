@@ -59,18 +59,21 @@ JSON
   "title": "Introduction to MERN",
   "pages": [
     {
+      "_id": "page_001",
       "order": 1,
       "type": "video",
       "title": "Welcome to the Course",
-      "videoUrl": "https://www.w3schools.com/html/mov_bbb.mp4"
+      "videoUrls": ["https://www.w3schools.com/html/mov_bbb.mp4"]
     },
     {
+      "_id": "page_002",
       "order": 2,
       "type": "text",
       "title": "Core Concepts",
       "textContent": "The MERN stack consists of MongoDB, Express, React, and Node.js."
     },
     {
+      "_id": "page_003",
       "order": 3,
       "type": "quiz",
       "title": "Final Knowledge Check",
@@ -93,6 +96,11 @@ JSON
 3. API: POST Create Course (CMS)
 Endpoint: POST /api/v1/courses
 Purpose: To allow teachers to create new courses via the CMS.
+
+**Note:** The `pages` field is optional. You can either:
+1. Create a course with pages included
+2. Create an empty course and add pages later using API 7
+
 Request Body:
 ```json
 {
@@ -101,7 +109,21 @@ Request Body:
   "category": ["AI", "Development"],
   "keywords": ["AI", "Integration", "Agent"],
   "thumbnail": "https://picsum.photos/seed/ai/400/250",
-  "published": false
+  "published": false,
+  "pages": [
+    {
+      "order": 1,
+      "type": "video",
+      "title": "Getting Started",
+      "videoUrls": ["https://www.example.com/intro.mp4"]
+    },
+    {
+      "order": 2,
+      "type": "text",
+      "title": "Introduction",
+      "textContent": "Learn about AI agent integration with MERN."
+    }
+  ]
 }
 ```
 Mock Success Response:

@@ -28,6 +28,10 @@ const courseSchema = new Schema<ICourseDocument>(
       default: false,
     },
     pages: [{
+      _id: {
+        type: Schema.Types.ObjectId,
+        auto: true,
+      },
       order: {
         type: Number,
         required: true,
@@ -72,6 +76,10 @@ const courseSchema = new Schema<ICourseDocument>(
       }],
     }],
     resources: [{
+      _id: {
+        type: Schema.Types.ObjectId,
+        auto: true,
+      },
       fileName: {
         type: String,
         required: true,
